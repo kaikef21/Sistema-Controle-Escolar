@@ -2,10 +2,10 @@
 
 namespace alunoapp.Models;
 
-public class Disciplina
+public class Disciplina 
 {
     [JsonIgnore]
     public virtual Guid DisciplinaId { get; set; }
     public string Nome { get; set; } = string.Empty;
-    public string Descricao { get; set; } = string.Empty;
+    public int CargaHoraria { get; set; }
 }

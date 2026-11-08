@@ -15,20 +15,16 @@ public class AlunoRepository : BaseRepository
         INSERT INTO aluno_ai.aluno
         (
             nome,
-            data_nascimento,
-            cpf,
-            nome_responsavel,
-            telefone_responsavel,
-            email
+            matricula,
+            status,
+            turma
         )
         VALUES
         (
             @nome,
-            @data_nascimento,
-            @cpf,
-            @nome_responsavel,
-            @telefone_responsavel,
-            @email
+            @matricula,
+            @status,
+            @turma
         )
         RETURNING aluno_id
         ";
@@ -39,11 +35,9 @@ public class AlunoRepository : BaseRepository
             await using var cmd = new NpgsqlCommand(sql, Connection);
 
             cmd.Parameters.Add("nome", NpgsqlDbType.Varchar).Value = aluno.Nome;
-            cmd.Parameters.Add("data_nascimento", NpgsqlDbType.Varchar).Value = aluno.DataNascimento;
-            cmd.Parameters.Add("cpf", NpgsqlDbType.Varchar).Value = aluno.Cpf;
-            cmd.Parameters.Add("nome_responsavel", NpgsqlDbType.Varchar).Value = aluno.NomeResponsavel;
-            cmd.Parameters.Add("telefone_responsavel", NpgsqlDbType.Varchar).Value = aluno.TelefoneResponsavel;
-            cmd.Parameters.Add("email", NpgsqlDbType.Varchar).Value = aluno.Email;
+            cmd.Parameters.Add("matricula", NpgsqlDbType.Varchar).Value = aluno.Matricula;
+            cmd.Parameters.Add("status", NpgsqlDbType.Varchar).Value = aluno.Status;
+            cmd.Parameters.Add("turma", NpgsqlDbType.Varchar).Value = aluno.Turma;
             
             var result = await cmd.ExecuteScalarAsync();
             return (Guid)result!;
@@ -62,11 +56,9 @@ public class AlunoRepository : BaseRepository
             SELECT 
                 aluno_id,
                 nome,
-                data_nascimento,
-                cpf,
-                nome_responsavel,
-                telefone_responsavel,
-                email
+                matricula,
+                status,
+                turma_id
 
             FROM aluno_ai.aluno
 
@@ -85,11 +77,9 @@ public class AlunoRepository : BaseRepository
                 var Aluno = new Aluno();
                 Aluno.AlunoId = reader.GetGuid("aluno_id");
                 Aluno.Nome = reader.GetString("nome");
-                Aluno.DataNascimento = reader.GetString("data_nascimento");
-                Aluno.Cpf = reader.GetString("cpf");
-                Aluno.NomeResponsavel = reader.GetString("nome_responsavel");
-                Aluno.TelefoneResponsavel = reader.GetString("telefone_responsavel");
-                Aluno.Email = reader.GetString("email");
+                Aluno.Matricula = reader.GetString("matricula");
+                Aluno.Status = reader.GetString("status");
+                Aluno.Turma = reader.GetString("turma");
 
                 alunos.Add(Aluno);
             }
@@ -109,11 +99,9 @@ public class AlunoRepository : BaseRepository
             SELECT
                 aluno_id,
                 nome,
-                data_nascimento,
-                cpf,
-                nome_responsavel,
-                telefone_responsavel,
-                email
+                matricula,
+                status,
+                turma
         
             FROM 
                 aluno_ai.aluno
@@ -137,11 +125,9 @@ public class AlunoRepository : BaseRepository
 
             Aluno.AlunoId = reader.GetGuid("aluno_id");
             Aluno.Nome = reader.GetString("nome");
-            Aluno.DataNascimento = reader.GetString("data_nascimento");
-            Aluno.Cpf = reader.GetString("cpf");
-            Aluno.NomeResponsavel = reader.GetString("nome_responsavel");
-            Aluno.TelefoneResponsavel = reader.GetString("telefone_responsavel");
-            Aluno.Email = reader.GetString("email");
+            Aluno.Matricula = reader.GetString("matricula");
+            Aluno.Status = reader.GetString("status");
+            Aluno.Turma = reader.GetString("turma");
 
             return Aluno;
         }

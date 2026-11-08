@@ -66,8 +66,14 @@ public class AlunoService : BaseService
         if (string.IsNullOrWhiteSpace(aluno.Nome))
             AddError(nameof(aluno.Nome), "Informe um nome.");
 
-        if (string.IsNullOrWhiteSpace(aluno.Email))
-            AddError(nameof(aluno.Email), "Informe um email .");
+        if (string.IsNullOrWhiteSpace(aluno.Matricula))
+            AddError(nameof(aluno.Matricula), "Informe uma matricula .");
+        
+        if (string.IsNullOrWhiteSpace(aluno.Status))
+            AddError(nameof(aluno.Status), "Informe um status.");
+
+        if (string.IsNullOrWhiteSpace(aluno.Turma))
+            AddError(nameof(aluno.Turma), "Informe uma turma.");
 
         if (Errors.Any())
             throw new ValidationException(Errors);

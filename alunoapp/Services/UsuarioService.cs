@@ -8,9 +8,9 @@ namespace alunoapp.Services;
 public class UsuarioService : BaseService
 {
     private readonly UsuarioRepository _usuarioRepository;
-     private readonly IPasswordHasher<Usuario> _passwordHasher;
+    private readonly IPasswordHasher<Usuario> _passwordHasher;
     public UsuarioService(UsuarioRepository usuarioRepository, IPasswordHasher<Usuario> passwordHasher)
-     {
+    {
         _usuarioRepository = usuarioRepository;
         _passwordHasher = passwordHasher;
     }
@@ -19,7 +19,7 @@ public class UsuarioService : BaseService
     {
         try
         {
-            ValidarCampos(usuario, Guid.Empty);
+            await ValidarCampos(usuario, Guid.Empty);
             usuario.Senha = _passwordHasher.HashPassword(usuario, usuario.Senha);
 
             var usuarioId = await _usuarioRepository.Cadastrar(usuario);
@@ -64,15 +64,21 @@ public class UsuarioService : BaseService
             throw new Exception($"Erro ao obter usuário por ID {ex.Message}");
         }
     }
-    private void ValidarCampos(Usuario usuario, Guid usuarioId)
+
+    private async Task ValidarCampos(Usuario usuario, Guid usuarioId)
     {
-    if (string.IsNullOrWhiteSpace(usuario.Username))
-    AddError(nameof(usuario.Username), "Informe um nome.");
+        if (string.IsNullOrWhiteSpace(usuario.Username))
+        {
+            AddError(nameof(usuario.Username), "Informe o username");
+        }
 
-  if (string.IsNullOrWhiteSpace(usuario.Senha))
-  AddError(nameof(usuario.Senha), "Informe uma senha.");
+        if (string.IsNullOrWhiteSpace(usuario.Senha))
+            AddError(nameof(usuario.Senha), "Informe a senha.");
 
-    if (Errors.Any())
-       throw new ValidationException(Errors);
-}
+        if (string.IsNullOrWhiteSpace(usuario.Nome))
+            AddError(nameof(usuario.Nome), "Informe o nome.");
+
+        if (Errors.Any())
+            throw new ValidationException(Errors);
+    }
 }

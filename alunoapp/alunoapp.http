@@ -1,0 +1,11 @@
+@alunoapp_HostAddress = http://localhost:5153
+
+GET {{alunoapp_HostAddress}}/openapi/v1.json
+Accept: application/json
+
+###
+
+GET {{alunoapp_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
