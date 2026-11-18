@@ -13,7 +13,7 @@ public class DisciplinaService : BaseService
         _disciplinaRepository = disciplinaRepository;
     }
 
-    public async Task<Guid> Cadastrar(Disciplina disciplina)
+    public async Task<Guid> Cadastrar(Nota disciplina)
     {
         try
         {
@@ -31,7 +31,7 @@ public class DisciplinaService : BaseService
         }
     }
 
-    public async Task<List<Disciplina>> Obter()
+    public async Task<List<Nota>> Obter()
     {
         try
         {
@@ -43,7 +43,7 @@ public class DisciplinaService : BaseService
         }
     }
 
-    public async Task<Disciplina> Obter(Guid disciplinaId)
+    public async Task<Nota> Obter(Guid disciplinaId)
     {
         try
         {
@@ -61,7 +61,7 @@ public class DisciplinaService : BaseService
         }
     }
 
-    private void ValidarCampos(Disciplina disciplina, Guid disciplinaId)
+    private void ValidarCampos(Nota disciplina, Guid disciplinaId)
     {
         if (string.IsNullOrWhiteSpace(disciplina.Nome))
             AddError(nameof(disciplina.Nome), "Informe um nome.");

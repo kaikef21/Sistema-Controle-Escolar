@@ -11,7 +11,7 @@ public static class DisciplinaController
     public static void MapDisciplinaEndpoints(this WebApplication app)
     {
         #region [ post ]
-        app.MapPost("v1/disciplina/", async (Disciplina disciplina, DisciplinaService services) =>
+        app.MapPost("v1/disciplina/", async (Nota disciplina, DisciplinaService services) =>
         {
             Guid disciplinaId = await services.Cadastrar(disciplina);
             return TypedResults.CreatedAtRoute(
@@ -37,7 +37,7 @@ public static class DisciplinaController
         .WithTags("Disciplina")
         .WithSummary("Retorna todas as disciplinas")
         .WithDescription("Retorna a lista de disciplinas cadastradas")
-        .Produces<List<Disciplina>>(StatusCodes.Status200OK)
+        .Produces<List<Nota>>(StatusCodes.Status200OK)
         .Produces<string>(StatusCodes.Status500InternalServerError);
         #endregion
 
@@ -51,7 +51,7 @@ public static class DisciplinaController
         .WithTags("Disciplina")
         .WithSummary("Retorna a Disciplina por ID")
         .WithDescription("Retorna uma disciplina especifica por ID")
-        .Produces<Disciplina>(StatusCodes.Status200OK)
+        .Produces<Nota>(StatusCodes.Status200OK)
         .Produces<string>(StatusCodes.Status404NotFound)
         .Produces<string>(StatusCodes.Status500InternalServerError);
         #endregion

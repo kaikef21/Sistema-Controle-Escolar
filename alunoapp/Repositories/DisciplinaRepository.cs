@@ -9,7 +9,7 @@ public class DisciplinaRepository : BaseRepository
 {
     public DisciplinaRepository(IDbConnection connection) : base(connection) { }
 
-    public async Task<Guid> Cadastrar(Disciplina disciplina)
+    public async Task<Guid> Cadastrar(Nota disciplina)
     {
         const string sql = @"
         INSERT INTO aluno_ai.disciplina
@@ -42,9 +42,9 @@ public class DisciplinaRepository : BaseRepository
         }
     }
 
-    public async Task<List<Disciplina>> Obter()
+    public async Task<List<Nota>> Obter()
     {
-        var disciplinas = new List<Disciplina>();
+        var disciplinas = new List<Nota>();
 
         string sql = @"
             SELECT 
@@ -66,7 +66,7 @@ public class DisciplinaRepository : BaseRepository
             await using var reader = await cmd.ExecuteReaderAsync();
             while (await reader.ReadAsync())
             {
-                var Disciplina = new Disciplina();
+                var Disciplina = new Nota();
                 Disciplina.DisciplinaId = reader.GetGuid("disciplina_id");
                 Disciplina.Nome = reader.GetString("nome");
                 Disciplina.CargaHoraria = reader.GetInt32("carga_horaria");
@@ -82,7 +82,7 @@ public class DisciplinaRepository : BaseRepository
         }
     }
 
-    public async Task<Disciplina?> Obter(Guid disciplinaId)
+    public async Task<Nota?> Obter(Guid disciplinaId)
     {
         const string sql = @"
     
@@ -109,7 +109,7 @@ public class DisciplinaRepository : BaseRepository
 
             if (!await reader.ReadAsync()) return null;
 
-            var Disciplina = new Disciplina();
+            var Disciplina = new Nota();
 
             Disciplina.DisciplinaId = reader.GetGuid("disciplina_id");
             Disciplina.Nome = reader.GetString("nome");
