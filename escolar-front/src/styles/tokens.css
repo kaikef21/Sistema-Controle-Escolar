@@ -1,0 +1,58 @@
+:root {
+  /* Verde Luau — identidade principal */
+  --luau-50: #f4f9ec;
+  --luau-100: #e5f1d4;
+  --luau-200: #cfe5ae;
+  --luau-400: #9ac56b;
+  --luau-500: #7daf52;
+  --luau-600: #62953d;
+  --luau-700: #4c7d34;
+  --luau-800: #3b6128;
+
+  /* Melodia do Mar — secundária */
+  --sea-50: #eef6f7;
+  --sea-100: #d9eaed;
+  --sea-300: #8dbcc6;
+  --sea-500: #3f8798;
+  --sea-600: #2f7080;
+  --sea-700: #265c69;
+
+  /* Neutros com leve tom esverdeado */
+  --ink: #16302a;
+  --ink-soft: #3c524b;
+  --muted: #62756e;
+  --faint: #93a29c;
+  --line: #e2e9e1;
+  --line-strong: #cfd9cd;
+  --bg: #f6f8f4;
+  --surface: #ffffff;
+  --surface-sunken: #f0f4ee;
+
+  /* Estados */
+  --ok-bg: #e5f1d4;
+  --ok-fg: #3b6128;
+  --info-bg: #d9eaed;
+  --info-fg: #265c69;
+  --warn-bg: #fbf0d3;
+  --warn-fg: #7a5a0c;
+  --danger-bg: #f8e1dc;
+  --danger-fg: #9a3a2b;
+  --neutral-bg: #e8ede7;
+  --neutral-fg: #4a5d56;
+
+  --radius-sm: 6px;
+  --radius: 8px;
+  --radius-lg: 12px;
+
+  --shadow-sm: 0 1px 2px rgba(22, 48, 42, 0.05);
+  --shadow-md: 0 4px 14px rgba(22, 48, 42, 0.08);
+  --shadow-lg: 0 18px 48px rgba(22, 48, 42, 0.16);
+
+  --sidebar-w: 248px;
+  --sidebar-w-collapsed: 68px;
+  --header-h: 64px;
+
+  --font: 'Hanken Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
