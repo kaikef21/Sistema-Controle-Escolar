@@ -15,37 +15,24 @@ public class TurmaRepository : BaseRepository
         INSERT INTO aluno_ai.turma
         (
             nome,
-            ano_letivo,
-            turno,
-            sala
+            ano_letivo
         )
         VALUES
         (
             @nome,
-            @ano_letivo,
-            @turno,
-            @sala
+            @ano_letivo
         )
         RETURNING turma_id;
         ";
-        try
-        {
-            await EnsureOpenAsync();
-            await using var cmd = new NpgsqlCommand(sql, Connection);
 
-            cmd.Parameters.Add("nome", NpgsqlDbType.Varchar).Value = turma.Nome;
-            cmd.Parameters.Add("ano_letivo", NpgsqlDbType.Integer).Value = turma.AnoLetivo;
-            cmd.Parameters.Add("turno", NpgsqlDbType.Varchar).Value = turma.Turno;
-            cmd.Parameters.Add("sala", NpgsqlDbType.Varchar).Value = turma.Sala;
+        await EnsureOpenAsync();
+        await using var cmd = new NpgsqlCommand(sql, Connection);
 
-            var result = await cmd.ExecuteScalarAsync();
+        cmd.Parameters.Add("nome", NpgsqlDbType.Varchar).Value = turma.Nome;
+        cmd.Parameters.Add("ano_letivo", NpgsqlDbType.Integer).Value = turma.AnoLetivo;
 
-            return (Guid)result!;
-        }
-        catch
-        {
-            throw;
-        }
+        var result = await cmd.ExecuteScalarAsync();
+        return (Guid)result!;
     }
 
     public async Task<List<Turma>> Obter()
@@ -55,67 +42,51 @@ public class TurmaRepository : BaseRepository
         SELECT
             turma_id,
             nome,
-            ano_letivo,
-            turno,
-            sala
-        FROM aluno_ai.turma
-        WHERE 1 = 1
+            ano_letivo
+        FROM aluno_ai.turma;
         ";
-        try
+
+        await EnsureOpenAsync();
+        await using var cmd = new NpgsqlCommand(sql, Connection);
+        await using var reader = await cmd.ExecuteReaderAsync();
+
+        while (await reader.ReadAsync())
         {
-            await EnsureOpenAsync();
-            await using var cmd = new NpgsqlCommand(sql, Connection);
-
-            await using var reader = await cmd.ExecuteReaderAsync();
-
-            while (await reader.ReadAsync())
+            turmas.Add(new Turma
             {
-                var turma = new Turma();
-                turma.TurmaId = reader.GetGuid("turma_id");
-                turma.Nome = reader.GetString("nome");
-                turma.AnoLetivo = reader.GetInt32("ano_letivo");
-                turma.Turno = reader.GetString("turno");
-                turma.Sala = reader.GetString("sala");
-                turmas.Add(turma);
-            }
-            return turmas;
+                TurmaId = reader.GetGuid("turma_id"),
+                Nome = reader.GetString("nome"),
+                AnoLetivo = reader.GetInt32("ano_letivo")
+            });
         }
-        catch
-        {
-            throw;
-        }
+
+        return turmas;
     }
 
-    public async Task<Turma> Obter(Guid turmaId)
+    public async Task<Turma?> Obter(Guid turmaId)
     {
         const string sql = @"
         SELECT
             turma_id,
             nome,
-            ano_letivo,
-            turno,
-            sala
+            ano_letivo
         FROM aluno_ai.turma
         WHERE turma_id = @turma_id
+        LIMIT 1;
         ";
-        try
+
+        await EnsureOpenAsync();
+        await using var cmd = new NpgsqlCommand(sql, Connection);
+        cmd.Parameters.Add("turma_id", NpgsqlDbType.Uuid).Value = turmaId;
+
+        await using var reader = await cmd.ExecuteReaderAsync();
+        if (!await reader.ReadAsync()) return null;
+
+        return new Turma
         {
-            await EnsureOpenAsync();
-            await using var cmd = new NpgsqlCommand(sql, Connection);
-            cmd.Parameters.Add("turma_id", NpgsqlDbType.Uuid).Value = turmaId;
-            await using var reader = await cmd.ExecuteReaderAsync();
-            if (!await reader.ReadAsync()) return null;
-            var turma = new Turma();
-            turma.TurmaId = reader.GetGuid("turma_id");
-            turma.Nome = reader.GetString("nome");
-            turma.AnoLetivo = reader.GetInt32("ano_letivo");
-            turma.Turno = reader.GetString("turno");
-            turma.Sala = reader.GetString("sala");
-            return turma;
-        }
-        catch
-        {
-            throw;
-        }
+            TurmaId = reader.GetGuid("turma_id"),
+            Nome = reader.GetString("nome"),
+            AnoLetivo = reader.GetInt32("ano_letivo")
+        };
     }
 }

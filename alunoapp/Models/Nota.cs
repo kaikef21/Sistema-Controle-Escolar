@@ -2,7 +2,7 @@
 
 namespace alunoapp.Models;
 
-public class Nota 
+public class Nota
 {
     [JsonIgnore]
     public virtual Guid NotaId { get; set; }

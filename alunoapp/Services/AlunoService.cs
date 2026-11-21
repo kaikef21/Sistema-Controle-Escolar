@@ -7,19 +7,18 @@ namespace alunoapp.Services;
 public class AlunoService : BaseService
 {
     private readonly AlunoRepository _alunoRepository;
-    
+
     public AlunoService(AlunoRepository alunoRepository)
     {
         _alunoRepository = alunoRepository;
     }
-    
+
     public async Task<Guid> Cadastrar(Aluno aluno)
     {
         try
         {
             ValidarCampos(aluno, Guid.Empty);
-            var alunoId = await _alunoRepository.Cadastrar(aluno);
-            return alunoId;
+            return await _alunoRepository.Cadastrar(aluno);
         }
         catch (ValidationException)
         {
@@ -30,7 +29,7 @@ public class AlunoService : BaseService
             throw new Exception($"Erro ao cadastrar aluno: {ex.Message}");
         }
     }
-    
+
     public async Task<List<Aluno>> Obter()
     {
         try
@@ -42,13 +41,13 @@ public class AlunoService : BaseService
             throw new Exception($"Erro ao obter aluno: {ex.Message}");
         }
     }
-    
+
     public async Task<Aluno> Obter(Guid alunoId)
     {
         try
         {
             var aluno = await _alunoRepository.Obter(alunoId);
-            if (aluno == null) throw new NotFoundException("Aluno não encontrado com o ID informado. ");
+            if (aluno == null) throw new NotFoundException("Aluno não encontrado com o ID informado.");
             return aluno;
         }
         catch (NotFoundException)
@@ -57,23 +56,22 @@ public class AlunoService : BaseService
         }
         catch (Exception ex)
         {
-            throw new Exception($"Erro ao obter aluno por ID {ex.Message}");
+            throw new Exception($"Erro ao obter aluno por ID: {ex.Message}");
         }
     }
-    
+
     private void ValidarCampos(Aluno aluno, Guid alunoId)
     {
+        ClearErrors();
+
         if (string.IsNullOrWhiteSpace(aluno.Nome))
             AddError(nameof(aluno.Nome), "Informe um nome.");
 
         if (string.IsNullOrWhiteSpace(aluno.Matricula))
-            AddError(nameof(aluno.Matricula), "Informe uma matricula .");
-        
-        if (string.IsNullOrWhiteSpace(aluno.Status))
-            AddError(nameof(aluno.Status), "Informe um status.");
+            AddError(nameof(aluno.Matricula), "Informe uma matrícula.");
 
-        if (string.IsNullOrWhiteSpace(aluno.Turma))
-            AddError(nameof(aluno.Turma), "Informe uma turma.");
+        if (aluno.TurmaId == Guid.Empty)
+            AddError(nameof(aluno.TurmaId), "Informe uma turma.");
 
         if (Errors.Any())
             throw new ValidationException(Errors);

@@ -2,18 +2,16 @@
 
 public class DateTimeHelper
 {
-    public static DateTime AgoraBrasilia()
-    {
-        return SaoPaulo();
-    }
+    private static readonly TimeZoneInfo BrasiliaTimeZone =
+        TimeZoneInfo.FindSystemTimeZoneById("America/Sao_Paulo");
+
+    public static DateTime AgoraBrasilia() => SaoPaulo();
 
     public static DateTime SaoPaulo()
     {
-        return DateTime.SpecifyKind(DateTime.UtcNow.AddHours(-3), DateTimeKind.Unspecified);
+        var local = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, BrasiliaTimeZone);
+        return DateTime.SpecifyKind(local, DateTimeKind.Unspecified);
     }
 
-    public static DateTime AgoraUtc()
-    {
-        return DateTime.UtcNow;
-    }
+    public static DateTime AgoraUtc() => DateTime.UtcNow;
 }

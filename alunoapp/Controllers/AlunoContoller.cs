@@ -1,6 +1,6 @@
 ﻿using alunoapp.Models;
 using alunoapp.Services;
-using alunoapp.Utils;
+using alunoapp.Validations;
 
 namespace alunoapp.Controllers;
 
@@ -21,7 +21,7 @@ public static class AlunoController
         })
         .WithTags("Aluno")
         .WithSummary("Cadastrar um aluno")
-        .WithDescription("Cadastra um aluno com username, senha, nome e perfil")
+        .WithDescription("Cadastra um aluno com nome, matrícula e turma")
         .Produces<AlunoPostResponse>(StatusCodes.Status201Created)
         .Produces<List<ValidationError>>(StatusCodes.Status400BadRequest)
         .Produces<string>(StatusCodes.Status500InternalServerError);
@@ -49,8 +49,8 @@ public static class AlunoController
         })
         .WithName("aluno_id")
         .WithTags("Aluno")
-        .WithSummary("Retorna o Aluno por ID")
-        .WithDescription("Retorna um aluno especifico por ID")
+        .WithSummary("Retorna o aluno por ID")
+        .WithDescription("Retorna um aluno específico por ID")
         .Produces<Aluno>(StatusCodes.Status200OK)
         .Produces<string>(StatusCodes.Status404NotFound)
         .Produces<string>(StatusCodes.Status500InternalServerError);

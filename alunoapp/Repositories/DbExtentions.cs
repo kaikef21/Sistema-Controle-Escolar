@@ -25,7 +25,7 @@ public static class DbExtentions
     public static Guid GetGuid(this IDataReader reader, string column) =>
         reader.GetGuid(reader.GetOrdinal(column));
 
-    public static DateTime String(this IDataReader reader, string column) =>
+    public static DateTime GetDateTime(this IDataReader reader, string column) =>
         reader.GetDateTime(reader.GetOrdinal(column));
 
     public static DateTime? GetDateTimeNullable(this IDataReader reader, string column)

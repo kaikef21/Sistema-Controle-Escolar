@@ -1,6 +1,6 @@
 ﻿using alunoapp.Models;
 using alunoapp.Services;
-using alunoapp.Utils;
+using alunoapp.Validations;
 
 namespace alunoapp.Controllers;
 
@@ -17,11 +17,11 @@ public static class TurmaController
             return TypedResults.CreatedAtRoute(
                 routeName: "turma_id",
                 routeValues: new { turmaId },
-                value: new TurmaPostResponse(turmaId, "Turma cadastrado com sucesso"));
+                value: new TurmaPostResponse(turmaId, "Turma cadastrada com sucesso"));
         })
         .WithTags("Turma")
-        .WithSummary("Cadastrar um turma")
-        .WithDescription("Cadastra um turma com username, senha, nome e perfil")
+        .WithSummary("Cadastrar uma turma")
+        .WithDescription("Cadastra uma turma com nome e ano letivo")
         .Produces<TurmaPostResponse>(StatusCodes.Status201Created)
         .Produces<List<ValidationError>>(StatusCodes.Status400BadRequest)
         .Produces<string>(StatusCodes.Status500InternalServerError);
@@ -35,8 +35,8 @@ public static class TurmaController
         })
         .WithName("turma_get_all")
         .WithTags("Turma")
-        .WithSummary("Retorna todos os turmas")
-        .WithDescription("Retorna a lista de turmas cadastrados")
+        .WithSummary("Retorna todas as turmas")
+        .WithDescription("Retorna a lista de turmas cadastradas")
         .Produces<List<Turma>>(StatusCodes.Status200OK)
         .Produces<string>(StatusCodes.Status500InternalServerError);
         #endregion
@@ -49,8 +49,8 @@ public static class TurmaController
         })
         .WithName("turma_id")
         .WithTags("Turma")
-        .WithSummary("Retorna o Turma por ID")
-        .WithDescription("Retorna um turma especifico por ID")
+        .WithSummary("Retorna a turma por ID")
+        .WithDescription("Retorna uma turma específica por ID")
         .Produces<Turma>(StatusCodes.Status200OK)
         .Produces<string>(StatusCodes.Status404NotFound)
         .Produces<string>(StatusCodes.Status500InternalServerError);

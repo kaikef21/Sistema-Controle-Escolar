@@ -9,6 +9,7 @@ public class UsuarioService : BaseService
 {
     private readonly UsuarioRepository _usuarioRepository;
     private readonly IPasswordHasher<Usuario> _passwordHasher;
+
     public UsuarioService(UsuarioRepository usuarioRepository, IPasswordHasher<Usuario> passwordHasher)
     {
         _usuarioRepository = usuarioRepository;
@@ -19,11 +20,9 @@ public class UsuarioService : BaseService
     {
         try
         {
-            await ValidarCampos(usuario, Guid.Empty);
+            ValidarCampos(usuario, Guid.Empty);
             usuario.Senha = _passwordHasher.HashPassword(usuario, usuario.Senha);
-
-            var usuarioId = await _usuarioRepository.Cadastrar(usuario);
-            return usuarioId;
+            return await _usuarioRepository.Cadastrar(usuario);
         }
         catch (ValidationException)
         {
@@ -31,7 +30,7 @@ public class UsuarioService : BaseService
         }
         catch (Exception ex)
         {
-            throw new Exception($"Erro ao cadastra usuario: {ex.Message}");
+            throw new Exception($"Erro ao cadastrar usuário: {ex.Message}");
         }
     }
 
@@ -43,7 +42,7 @@ public class UsuarioService : BaseService
         }
         catch (Exception ex)
         {
-            throw new Exception($"Erro ao obter usuario: {ex.Message}");
+            throw new Exception($"Erro ao obter usuário: {ex.Message}");
         }
     }
 
@@ -52,7 +51,7 @@ public class UsuarioService : BaseService
         try
         {
             var usuario = await _usuarioRepository.Obter(usuarioId);
-            if (usuario == null) throw new NotFoundException("Usuário não encontrado com o ID informado. ");
+            if (usuario == null) throw new NotFoundException("Usuário não encontrado com o ID informado.");
             return usuario;
         }
         catch (NotFoundException)
@@ -61,16 +60,16 @@ public class UsuarioService : BaseService
         }
         catch (Exception ex)
         {
-            throw new Exception($"Erro ao obter usuário por ID {ex.Message}");
+            throw new Exception($"Erro ao obter usuário por ID: {ex.Message}");
         }
     }
 
-    private async Task ValidarCampos(Usuario usuario, Guid usuarioId)
+    private void ValidarCampos(Usuario usuario, Guid usuarioId)
     {
+        ClearErrors();
+
         if (string.IsNullOrWhiteSpace(usuario.Username))
-        {
-            AddError(nameof(usuario.Username), "Informe o username");
-        }
+            AddError(nameof(usuario.Username), "Informe o username.");
 
         if (string.IsNullOrWhiteSpace(usuario.Senha))
             AddError(nameof(usuario.Senha), "Informe a senha.");

@@ -1,18 +1,17 @@
 ﻿using alunoapp.Validations;
 
-namespace alunoapp.Services
+namespace alunoapp.Services;
+
+public class BaseService
 {
-    public class BaseService
+    private readonly List<ValidationError> _errors = new();
+
+    public List<ValidationError> Errors => _errors;
+
+    protected void ClearErrors() => _errors.Clear();
+
+    protected void AddError(string field, string message)
     {
-        private List<ValidationError> _errors = new();
-
-        public List<ValidationError> Errors { get => _errors; }
-
-        protected void AddError(string field, string message)
-        {
-            _errors.Add(new ValidationError(field, message));
-
-
-        }
+        _errors.Add(new ValidationError(field, message));
     }
 }

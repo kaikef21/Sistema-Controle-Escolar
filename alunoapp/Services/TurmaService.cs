@@ -17,14 +17,12 @@ public class TurmaService : BaseService
     {
         try
         {
-            await ValidarCampos(turma, Guid.Empty);
-            var turmaId = await _turmaRepository.Cadastrar(turma);
-            return turmaId;
+            ValidarCampos(turma, Guid.Empty);
+            return await _turmaRepository.Cadastrar(turma);
         }
         catch (ValidationException)
         {
             throw;
-
         }
         catch (Exception ex)
         {
@@ -49,7 +47,7 @@ public class TurmaService : BaseService
         try
         {
             var turma = await _turmaRepository.Obter(turmaId);
-            if (turma == null) throw new NotFoundException("Turma não encontrada com o ID informado. ");
+            if (turma == null) throw new NotFoundException("Turma não encontrada com o ID informado.");
             return turma;
         }
         catch (NotFoundException)
@@ -58,22 +56,19 @@ public class TurmaService : BaseService
         }
         catch (Exception ex)
         {
-            throw new Exception($"Erro ao obter turma por ID {ex.Message}");
+            throw new Exception($"Erro ao obter turma por ID: {ex.Message}");
         }
     }
 
-    private async Task ValidarCampos(Turma turma, Guid turmaId)
+    private void ValidarCampos(Turma turma, Guid turmaId)
     {
+        ClearErrors();
+
         if (string.IsNullOrWhiteSpace(turma.Nome))
-        {
-            AddError(nameof(turma.Nome), "Informe o nome");
-        }
+            AddError(nameof(turma.Nome), "Informe o nome.");
 
-        if (string.IsNullOrWhiteSpace(turma.Turno))
-            AddError(nameof(turma.Turno), "Informe o turno.");
-
-        if (string.IsNullOrWhiteSpace(turma.Sala))
-            AddError(nameof(turma.Sala), "Informe a sala.");
+        if (turma.AnoLetivo <= 0)
+            AddError(nameof(turma.AnoLetivo), "Informe o ano letivo.");
 
         if (Errors.Any())
             throw new ValidationException(Errors);
