@@ -1,27 +1,35 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
-import { AppProvider } from './store/AppProvider'
-import { AppLayout } from './layout/AppLayout'
-import { Dashboard } from './pages/Dashboard'
+import { AppProvider } from './state/AppProvider'
+import { AlunoLayout } from './components/AlunoLayout'
+import { Layout } from './components/Layout'
 import { Alunos } from './pages/Alunos'
 import { Atividades } from './pages/Atividades'
-import { LancarNotas } from './pages/LancarNotas'
-import { LancarFaltas } from './pages/LancarFaltas'
-import { Aprovacoes } from './pages/Aprovacoes'
+import { Entrada } from './pages/Entrada'
+import { Lancamentos } from './pages/Lancamentos'
+import { MeuBoletim } from './pages/MeuBoletim'
+import { StatusGeral } from './pages/StatusGeral'
 
 export default function App() {
   return (
     <AppProvider>
       <BrowserRouter>
         <Routes>
-          <Route element={<AppLayout />}>
-            <Route index element={<Dashboard />} />
+          <Route index element={<Entrada />} />
+
+          {/* Área do professor */}
+          <Route element={<Layout />}>
             <Route path="alunos" element={<Alunos />} />
             <Route path="atividades" element={<Atividades />} />
-            <Route path="notas" element={<LancarNotas />} />
-            <Route path="faltas" element={<LancarFaltas />} />
-            <Route path="aprovacoes" element={<Aprovacoes />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="lancamentos" element={<Lancamentos />} />
+            <Route path="status" element={<StatusGeral />} />
           </Route>
+
+          {/* Área do aluno */}
+          <Route element={<AlunoLayout />}>
+            <Route path="aluno" element={<MeuBoletim />} />
+          </Route>
+
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
     </AppProvider>

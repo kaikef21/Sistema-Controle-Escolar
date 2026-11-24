@@ -1,228 +1,230 @@
 import { useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
-import { ClipboardList, Pencil, Plus } from 'lucide-react'
-import { PageHead } from '../components/PageHead'
-import { Button } from '../components/ui/Button'
-import { Badge, StatusBadge } from '../components/ui/Badge'
+import { useNavigate } from 'react-router-dom'
+import { ArrowRight, ClipboardList, FilePlus2, PenLine } from 'lucide-react'
+import { api, ApiError } from '../api/client'
 import {
+  Badge,
+  Button,
+  EmptyState,
   SelectField,
-  TextAreaField,
+  TableSkeleton,
   TextField,
-} from '../components/ui/Field'
-import { EmptyState, TableSkeleton } from '../components/ui/Feedback'
-import { Pagination } from '../components/ui/Pagination'
-import { SearchInput } from '../components/ui/SearchInput'
-import { Sheet } from '../components/ui/Sheet'
-import { useSimulatedLoading } from '../hooks/useSimulatedLoading'
-import { useApp } from '../store/useApp'
-import type { Atividade, TipoAtividade } from '../types'
-import { formatDate, formatNota, normalize, todayISO } from '../utils/format'
+} from '../components/ui'
+import { useApp } from '../state/useApp'
+import { TIPOS_ATIVIDADE } from '../types'
+import { formatDate, formatNum, parseNumber, todayISO } from '../utils/format'
 
-const TIPOS: TipoAtividade[] = ['Prova', 'Trabalho', 'Atividade Prática']
-const PAGE = 8
+const TOM: Record<string, 'indigo' | 'amber' | 'green'> = {
+  Prova: 'indigo',
+  Trabalho: 'amber',
+  'Atividade Prática': 'green',
+}
 
 export function Atividades() {
-  const { atividades, turmas, disciplinas, lancamentos } = useApp()
-  const loading = useSimulatedLoading()
-  const [q, setQ] = useState('')
-  const [turma, setTurma] = useState('')
-  const [disc, setDisc] = useState('')
-  const [tipo, setTipo] = useState('')
-  const [page, setPage] = useState(1)
-  const [editing, setEditing] = useState<Atividade | 'new' | null>(null)
+  const { status, turmas, alunos, atividades, notas, reload, notify, addLog } = useApp()
+  const navigate = useNavigate()
 
-  const filtered = useMemo(() => {
-    const nq = normalize(q.trim())
-    return atividades
-      .filter(
-        (a) =>
-          (!nq || normalize(a.titulo).includes(nq)) &&
-          (!turma || a.turmaId === turma) &&
-          (!disc || a.disciplinaId === disc) &&
-          (!tipo || a.tipo === tipo),
-      )
-      .sort((a, b) => b.dataAplicacao.localeCompare(a.dataAplicacao))
-  }, [atividades, q, turma, disc, tipo])
+  const [titulo, setTitulo] = useState('')
+  const [tipo, setTipo] = useState<string>(TIPOS_ATIVIDADE[0])
+  const [turmaId, setTurmaId] = useState('')
+  const [notaMaxima, setNotaMaxima] = useState('10')
+  const [data, setData] = useState(todayISO())
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [saving, setSaving] = useState(false)
+  const [filtroTurma, setFiltroTurma] = useState('')
 
-  const pages = Math.max(1, Math.ceil(filtered.length / PAGE))
-  const current = Math.min(page, pages)
-  const rows = filtered.slice((current - 1) * PAGE, current * PAGE)
-  const hasFilter = !!(q || turma || disc || tipo)
-  const reset = () => {
-    setQ('')
-    setTurma('')
-    setDisc('')
-    setTipo('')
-    setPage(1)
+  const turmaNome = (id: string) => turmas.find((t) => t.turmaId === id)?.nome ?? '—'
+
+  const lista = useMemo(
+    () =>
+      atividades
+        .filter((a) => !filtroTurma || a.turmaId === filtroTurma)
+        .sort((a, b) => b.dataRealizacao.localeCompare(a.dataRealizacao)),
+    [atividades, filtroTurma],
+  )
+
+  const submit = async (ev: FormEvent) => {
+    ev.preventDefault()
+    const e: Record<string, string> = {}
+    if (titulo.trim().length < 3) e.titulo = 'Dê um nome para a atividade.'
+    if (!turmaId) e.turmaId = 'Selecione a turma.'
+    const max = parseNumber(notaMaxima)
+    if (max === null || Number.isNaN(max) || max <= 0 || max > 100)
+      e.notaMaxima = 'Informe um valor entre 0,1 e 100.'
+    if (!data) e.dataRealizacao = 'Informe a data.'
+    setErrors(e)
+    if (Object.keys(e).length) return
+
+    setSaving(true)
+    try {
+      await api.criarAtividade({
+        titulo: titulo.trim(),
+        tipo,
+        turmaId,
+        notaMaxima: max as number,
+        dataRealizacao: data,
+      })
+      notify('success', 'Atividade cadastrada', titulo.trim())
+      addLog(`Atividade cadastrada: ${titulo.trim()} (${turmaNome(turmaId)})`)
+      setTitulo('')
+      reload()
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setErrors(err.fields)
+        notify('error', 'Não foi possível cadastrar', err.message)
+      } else {
+        notify('error', 'Não foi possível cadastrar')
+      }
+    } finally {
+      setSaving(false)
+    }
   }
-
-  const turmaNome = (id: string) => turmas.find((t) => t.id === id)?.nome ?? '—'
-  const discNome = (id: string) =>
-    disciplinas.find((d) => d.id === id)?.nome ?? '—'
-  const today = todayISO()
 
   return (
     <>
-      <PageHead
-        text="Cadastre as provas, trabalhos e atividades práticas de cada turma e acompanhe o prazo de lançamento."
-        actions={
-          <Button
-            variant="primary"
-            icon={<Plus size={17} />}
-            onClick={() => setEditing('new')}
-          >
-            Nova atividade
-          </Button>
-        }
-      />
-
-      <div className="panel">
-        <div className="toolbar">
-          <SearchInput
-            value={q}
-            onChange={(v) => {
-              setQ(v)
-              setPage(1)
-            }}
-            placeholder="Buscar por nome da atividade"
-          />
-          <select
-            className="select"
-            aria-label="Filtrar por turma"
-            value={turma}
-            onChange={(e) => {
-              setTurma(e.target.value)
-              setPage(1)
-            }}
-          >
-            <option value="">Todas as turmas</option>
-            {turmas.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.nome}
-              </option>
-            ))}
-          </select>
-          <select
-            className="select"
-            aria-label="Filtrar por disciplina"
-            value={disc}
-            onChange={(e) => {
-              setDisc(e.target.value)
-              setPage(1)
-            }}
-          >
-            <option value="">Todas as disciplinas</option>
-            {disciplinas.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.nome}
-              </option>
-            ))}
-          </select>
-          <select
-            className="select"
-            aria-label="Filtrar por tipo"
-            value={tipo}
-            onChange={(e) => {
-              setTipo(e.target.value)
-              setPage(1)
-            }}
-          >
-            <option value="">Todos os tipos</option>
-            {TIPOS.map((t) => (
-              <option key={t}>{t}</option>
-            ))}
-          </select>
-          {hasFilter && (
-            <Button variant="ghost" size="sm" onClick={reset}>
-              Limpar filtros
-            </Button>
-          )}
+      <div className="page-head">
+        <div>
+          <h1>Cadastro de atividades</h1>
+          <p>Registre provas, trabalhos e atividades práticas de cada turma.</p>
         </div>
+        <Button variant="primary" icon={<ArrowRight size={17} />} onClick={() => navigate('/lancamentos')}>
+          Próxima etapa: Lançamentos
+        </Button>
+      </div>
 
-        {loading ? (
-          <TableSkeleton />
-        ) : filtered.length === 0 ? (
-          <EmptyState
-            icon={<ClipboardList size={24} />}
-            title={
-              hasFilter ? 'Nenhuma atividade encontrada' : 'Nenhuma atividade cadastrada'
-            }
-            text={
-              hasFilter
-                ? 'Ajuste a busca ou remova alguns filtros.'
-                : 'Crie a primeira atividade para depois lançar as notas da turma.'
-            }
-            action={
-              hasFilter ? (
-                <Button onClick={reset}>Limpar filtros</Button>
-              ) : (
-                <Button
-                  variant="primary"
-                  icon={<Plus size={17} />}
-                  onClick={() => setEditing('new')}
-                >
-                  Nova atividade
-                </Button>
-              )
-            }
-          />
-        ) : (
-          <>
+      <div className="split">
+        <section className="card">
+          <div className="card-head">
+            <h2>
+              <FilePlus2 size={18} /> Nova atividade
+            </h2>
+          </div>
+          <form className="card-body form" onSubmit={submit} noValidate>
+            <TextField
+              label="Título"
+              placeholder="Ex.: Prova 1 de Matemática"
+              value={titulo}
+              error={errors.titulo}
+              onChange={(e) => setTitulo(e.target.value)}
+            />
+            <div className="row2">
+              <SelectField
+                label="Tipo"
+                value={tipo}
+                error={errors.tipo}
+                options={TIPOS_ATIVIDADE.map((t) => ({ value: t, label: t }))}
+                onChange={(e) => setTipo(e.target.value)}
+              />
+              <TextField
+                label="Nota máxima"
+                inputMode="decimal"
+                value={notaMaxima}
+                error={errors.notaMaxima}
+                onChange={(e) => setNotaMaxima(e.target.value)}
+              />
+            </div>
+            <SelectField
+              label="Turma"
+              value={turmaId}
+              error={errors.turmaId}
+              placeholder={turmas.length ? 'Selecione a turma' : 'Cadastre uma turma na etapa Alunos'}
+              options={turmas.map((t) => ({ value: t.turmaId, label: t.nome }))}
+              onChange={(e) => setTurmaId(e.target.value)}
+            />
+            <TextField
+              label="Data de realização"
+              type="date"
+              value={data}
+              error={errors.dataRealizacao}
+              onChange={(e) => setData(e.target.value)}
+            />
+            <Button variant="primary" type="submit" block loading={saving} disabled={status === 'error'}>
+              Cadastrar atividade
+            </Button>
+          </form>
+        </section>
+
+        <section className="card">
+          <div className="card-head">
+            <h2>
+              <ClipboardList size={18} /> Atividades cadastradas
+            </h2>
+            <span className="sub-cell">{atividades.length} no total</span>
+          </div>
+          <div className="toolbar">
+            <select
+              className="select"
+              aria-label="Filtrar por turma"
+              value={filtroTurma}
+              onChange={(e) => setFiltroTurma(e.target.value)}
+            >
+              <option value="">Todas as turmas</option>
+              {turmas.map((t) => (
+                <option key={t.turmaId} value={t.turmaId}>
+                  {t.nome}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {status === 'loading' && atividades.length === 0 ? (
+            <TableSkeleton />
+          ) : lista.length === 0 ? (
+            <EmptyState
+              icon={<ClipboardList size={32} />}
+              title="Nenhuma atividade por aqui"
+              text={
+                atividades.length === 0
+                  ? 'Cadastre a primeira atividade para poder lançar notas.'
+                  : 'Não há atividades para a turma escolhida.'
+              }
+            />
+          ) : (
             <div className="table-wrap">
-              <table className="table">
+              <table>
                 <thead>
                   <tr>
                     <th>Atividade</th>
-                    <th>Disciplina</th>
                     <th>Turma</th>
-                    <th>Aplicação</th>
-                    <th className="right">Pontuação</th>
-                    <th>Prazo de lançamento</th>
+                    <th>Data</th>
+                    <th>Notas lançadas</th>
+                    <th className="right">Máx.</th>
                     <th />
                   </tr>
                 </thead>
                 <tbody>
-                  {rows.map((a) => {
-                    const l = lancamentos.find((x) => x.atividadeId === a.id)
-                    const late =
-                      a.prazoLancamento < today &&
-                      (!l || l.status === 'rascunho' || l.status === 'correcao')
+                  {lista.map((a) => {
+                    const lancadas = notas.filter((n) => n.atividadeId === a.atividadeId).length
+                    const total = alunos.filter((x) => x.turmaId === a.turmaId).length
+                    const pct = total ? Math.min(100, Math.round((lancadas / total) * 100)) : 0
                     return (
-                      <tr
-                        key={a.id}
-                        className="clickable"
-                        onClick={() => setEditing(a)}
-                      >
+                      <tr key={a.atividadeId ?? a.titulo}>
                         <td>
-                          <div className="cell-main">{a.titulo}</div>
-                          <div className="cell-sub">{a.tipo}</div>
+                          <div className="main-cell">{a.titulo}</div>
+                          <div className="sub-cell">
+                            {a.tipo && <Badge tone={TOM[a.tipo] ?? 'slate'}>{a.tipo}</Badge>}
+                          </div>
                         </td>
-                        <td>{discNome(a.disciplinaId)}</td>
                         <td>{turmaNome(a.turmaId)}</td>
-                        <td className="num">{formatDate(a.dataAplicacao)}</td>
-                        <td className="right num">{formatNota(a.notaMaxima)}</td>
+                        <td>{formatDate(a.dataRealizacao)}</td>
                         <td>
-                          <div className="num">{formatDate(a.prazoLancamento)}</div>
-                          <div style={{ marginTop: 4 }}>
-                            {late ? (
-                              <Badge tone="danger">Prazo vencido</Badge>
-                            ) : l ? (
-                              <StatusBadge status={l.status} />
-                            ) : (
-                              <span className="cell-sub">Sem lançamento</span>
-                            )}
+                          <div className="progress" title={`${lancadas} de ${total} notas lançadas`}>
+                            <i style={{ width: `${pct}%` }} />
+                          </div>
+                          <div className="sub-cell">
+                            {lancadas} de {total} notas
                           </div>
                         </td>
-                        <td onClick={(e) => e.stopPropagation()}>
-                          <div className="row-actions">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              aria-label={`Editar ${a.titulo}`}
-                              icon={<Pencil size={16} />}
-                              onClick={() => setEditing(a)}
-                            />
-                          </div>
+                        <td className="right">{formatNum(a.notaMaxima)}</td>
+                        <td className="right">
+                          <Button
+                            size="sm"
+                            icon={<PenLine size={15} />}
+                            onClick={() => navigate(`/lancamentos?atividade=${a.atividadeId}`)}
+                          >
+                            Lançar
+                          </Button>
                         </td>
                       </tr>
                     )
@@ -230,176 +232,9 @@ export function Atividades() {
                 </tbody>
               </table>
             </div>
-            <Pagination
-              page={current}
-              pageSize={PAGE}
-              total={filtered.length}
-              onPage={setPage}
-            />
-          </>
-        )}
+          )}
+        </section>
       </div>
-
-      {editing && (
-        <AtividadeForm
-          atividade={editing === 'new' ? undefined : editing}
-          onClose={() => setEditing(null)}
-        />
-      )}
     </>
-  )
-}
-
-function AtividadeForm({
-  atividade,
-  onClose,
-}: {
-  atividade?: Atividade
-  onClose: () => void
-}) {
-  const { turmas, disciplinas, saveAtividade, notify } = useApp()
-  const [f, setF] = useState({
-    titulo: atividade?.titulo ?? '',
-    descricao: atividade?.descricao ?? '',
-    tipo: (atividade?.tipo ?? 'Prova') as TipoAtividade,
-    disciplinaId: atividade?.disciplinaId ?? '',
-    turmaId: atividade?.turmaId ?? '',
-    dataAplicacao: atividade?.dataAplicacao ?? '',
-    notaMaxima: String(atividade?.notaMaxima ?? 10),
-    prazoLancamento: atividade?.prazoLancamento ?? '',
-  })
-  const [errors, setErrors] = useState<Record<string, string>>({})
-  const [saving, setSaving] = useState(false)
-  const set = (k: keyof typeof f) => (v: string) =>
-    setF((s) => ({ ...s, [k]: v }))
-
-  const validate = () => {
-    const e: Record<string, string> = {}
-    if (f.titulo.trim().length < 3) e.titulo = 'Dê um nome com pelo menos 3 letras.'
-    if (!f.disciplinaId) e.disciplinaId = 'Selecione a disciplina.'
-    if (!f.turmaId) e.turmaId = 'Selecione a turma.'
-    if (!f.dataAplicacao) e.dataAplicacao = 'Informe a data de aplicação.'
-    const max = Number(f.notaMaxima.replace(',', '.'))
-    if (!f.notaMaxima || Number.isNaN(max) || max <= 0 || max > 100)
-      e.notaMaxima = 'Informe uma pontuação entre 0,1 e 100.'
-    if (!f.prazoLancamento) e.prazoLancamento = 'Informe o prazo de lançamento.'
-    else if (f.dataAplicacao && f.prazoLancamento < f.dataAplicacao)
-      e.prazoLancamento = 'O prazo não pode ser anterior à data de aplicação.'
-    return e
-  }
-
-  const submit = async (ev: FormEvent) => {
-    ev.preventDefault()
-    const e = validate()
-    setErrors(e)
-    if (Object.keys(e).length) {
-      notify('error', 'Revise os campos', 'Alguns dados precisam de correção.')
-      return
-    }
-    setSaving(true)
-    await saveAtividade({
-      id: atividade?.id,
-      titulo: f.titulo.trim(),
-      descricao: f.descricao.trim(),
-      tipo: f.tipo,
-      disciplinaId: f.disciplinaId,
-      turmaId: f.turmaId,
-      dataAplicacao: f.dataAplicacao,
-      notaMaxima: Number(f.notaMaxima.replace(',', '.')),
-      prazoLancamento: f.prazoLancamento,
-    })
-    setSaving(false)
-    notify(
-      'success',
-      atividade ? 'Atividade atualizada' : 'Atividade criada',
-      f.titulo.trim(),
-    )
-    onClose()
-  }
-
-  return (
-    <Sheet
-      variant="modal"
-      wide
-      title={atividade ? 'Editar atividade' : 'Nova atividade'}
-      subtitle="Defina a pontuação máxima e até quando as notas podem ser lançadas."
-      onClose={onClose}
-      footer={
-        <>
-          <Button onClick={onClose} disabled={saving}>
-            Cancelar
-          </Button>
-          <Button
-            variant="primary"
-            type="submit"
-            form="atividade-form"
-            loading={saving}
-          >
-            {atividade ? 'Salvar alterações' : 'Criar atividade'}
-          </Button>
-        </>
-      }
-    >
-      <form id="atividade-form" onSubmit={submit} noValidate className="form-grid">
-        <TextField
-          className="span-2"
-          label="Nome da atividade"
-          value={f.titulo}
-          error={errors.titulo}
-          onChange={(e) => set('titulo')(e.target.value)}
-          autoFocus
-        />
-        <TextAreaField
-          className="span-2"
-          label="Descrição"
-          value={f.descricao}
-          hint="Opcional. Conteúdo cobrado, critérios de correção, etc."
-          onChange={(e) => set('descricao')(e.target.value)}
-        />
-        <SelectField
-          label="Disciplina"
-          value={f.disciplinaId}
-          error={errors.disciplinaId}
-          placeholder="Selecione"
-          options={disciplinas.map((d) => ({ value: d.id, label: d.nome }))}
-          onChange={(e) => set('disciplinaId')(e.target.value)}
-        />
-        <SelectField
-          label="Turma"
-          value={f.turmaId}
-          error={errors.turmaId}
-          placeholder="Selecione"
-          options={turmas.map((t) => ({ value: t.id, label: t.nome }))}
-          onChange={(e) => set('turmaId')(e.target.value)}
-        />
-        <SelectField
-          label="Tipo"
-          value={f.tipo}
-          options={TIPOS.map((t) => ({ value: t, label: t }))}
-          onChange={(e) => set('tipo')(e.target.value)}
-        />
-        <TextField
-          label="Pontuação máxima"
-          inputMode="decimal"
-          value={f.notaMaxima}
-          error={errors.notaMaxima}
-          onChange={(e) => set('notaMaxima')(e.target.value)}
-        />
-        <TextField
-          label="Data de aplicação"
-          type="date"
-          value={f.dataAplicacao}
-          error={errors.dataAplicacao}
-          onChange={(e) => set('dataAplicacao')(e.target.value)}
-        />
-        <TextField
-          label="Prazo de lançamento"
-          type="date"
-          value={f.prazoLancamento}
-          error={errors.prazoLancamento}
-          onChange={(e) => set('prazoLancamento')(e.target.value)}
-        />
-      </form>
-    </Sheet>
   )
 }

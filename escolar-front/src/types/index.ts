@@ -1,95 +1,51 @@
-export type Situacao = 'Ativo' | 'Trancado' | 'Inativo' | 'Formado'
-export type TipoAtividade = 'Prova' | 'Trabalho' | 'Atividade Prática'
-
+/** Formatos devolvidos pela API alunoapp (JSON em camelCase). */
 export interface Turma {
-  id: string
+  turmaId: string
   nome: string
   anoLetivo: number
-  curso: string
-}
-
-export interface Disciplina {
-  id: string
-  nome: string
 }
 
 export interface Aluno {
-  id: string
+  alunoId: string
   nome: string
-  matricula: string
+  matricula: string | null
   turmaId: string
-  curso: string
-  situacao: Situacao
-  email: string
-  /** Período de ingresso, por exemplo 2026.1 */
-  periodo: string
 }
 
 export interface Atividade {
-  id: string
+  atividadeId: string
   titulo: string
-  descricao: string
-  tipo: TipoAtividade
-  disciplinaId: string
+  tipo: string | null
   turmaId: string
-  dataAplicacao: string
-  notaMaxima: number
-  prazoLancamento: string
+  notaMaxima: number | null
+  dataRealizacao: string
 }
 
-export type StatusLancamento =
-  | 'rascunho'
-  | 'pendente'
-  | 'aprovado'
-  | 'rejeitado'
-  | 'correcao'
-
-export type TipoLancamento = 'nota' | 'falta'
-
-export interface LancamentoItem {
+export interface Nota {
+  notaId: string
   alunoId: string
-  /** Nota lançada (tipo "nota") */
-  nota: number | null
-  /** Quantidade de faltas no período (tipo "falta") */
-  faltas: number
+  atividadeId: string
+  valorNota: number
 }
 
-export type AcaoHistorico =
-  | 'criado'
-  | 'enviado'
-  | 'aprovado'
-  | 'rejeitado'
-  | 'correcao'
-
-export interface EventoHistorico {
-  id: string
-  acao: AcaoHistorico
-  autor: string
-  data: string
-  comentario?: string
+export interface Frequencia {
+  frequenciaId: string
+  alunoId: string
+  dataAula: string
+  presente: boolean
 }
 
-export interface Lancamento {
-  id: string
-  tipo: TipoLancamento
-  turmaId: string
-  disciplinaId: string
-  atividadeId?: string
-  /** Período de faltas */
-  periodoInicio?: string
-  periodoFim?: string
-  aulasNoPeriodo?: number
-  responsavel: string
-  status: StatusLancamento
-  enviadoEm?: string
-  atualizadoEm: string
-  itens: LancamentoItem[]
-  historico: EventoHistorico[]
-}
+export const TIPOS_ATIVIDADE = ['Prova', 'Trabalho', 'Atividade Prática'] as const
 
 export interface ToastMsg {
   id: number
   kind: 'success' | 'error' | 'info'
   title: string
   text?: string
+}
+
+export interface LogEntry {
+  id: number
+  at: string
+  text: string
 }
