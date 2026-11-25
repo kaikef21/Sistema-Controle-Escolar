@@ -22,6 +22,12 @@ public class UsuarioService : BaseService
         {
             ValidarCampos(usuario, Guid.Empty);
             usuario.Senha = _passwordHasher.HashPassword(usuario, usuario.Senha);
+
+            if (!string.IsNullOrEmpty(usuario.ConfirmarSenha))
+            {
+                usuario.ConfirmarSenha = _passwordHasher.HashPassword(usuario, usuario.ConfirmarSenha);
+            }
+
             return await _usuarioRepository.Cadastrar(usuario);
         }
         catch (ValidationException)

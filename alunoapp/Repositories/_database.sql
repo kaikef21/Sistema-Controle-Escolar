@@ -2,12 +2,16 @@ CREATE SCHEMA IF NOT EXISTS aluno_ai;
 
 CREATE TABLE IF NOT EXISTS aluno_ai.usuario (
     usuario_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    username VARCHAR(12) NOT NULL UNIQUE,
+    username VARCHAR(50) NOT NULL UNIQUE,
     senha VARCHAR(255) NOT NULL,
     nome VARCHAR(100) NOT NULL,
     confirmar_senha VARCHAR(20) NULL,
     criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+ALTER TABLE aluno_ai.usuario
+ALTER COLUMN username TYPE VARCHAR(50);
+
 
 CREATE TABLE IF NOT EXISTS aluno_ai.turma (
     turma_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

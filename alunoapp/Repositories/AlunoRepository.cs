@@ -8,7 +8,6 @@ namespace alunoapp.Repositories;
 public class AlunoRepository : BaseRepository
 {
     public AlunoRepository(IDbConnection connection) : base(connection) { }
-
     public async Task<Guid> Cadastrar(Aluno aluno)
     {
         const string sql = @"
@@ -26,17 +25,63 @@ public class AlunoRepository : BaseRepository
         )
         RETURNING aluno_id;
         ";
-
         await EnsureOpenAsync();
         await using var cmd = new NpgsqlCommand(sql, Connection);
 
         cmd.Parameters.Add("nome", NpgsqlDbType.Varchar).Value = aluno.Nome;
-        cmd.Parameters.Add("matricula", NpgsqlDbType.Varchar).Value = aluno.Matricula.ToDbValue();
+        cmd.Parameters.Add("matricula", NpgsqlDbType.Varchar).Value = aluno.Matricula;
         cmd.Parameters.Add("turma_id", NpgsqlDbType.Uuid).Value = aluno.TurmaId;
 
         var result = await cmd.ExecuteScalarAsync();
         return (Guid)result!;
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     public async Task<List<Aluno>> Obter()
     {
