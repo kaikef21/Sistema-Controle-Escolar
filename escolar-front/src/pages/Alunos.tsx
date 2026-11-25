@@ -1,9 +1,11 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowRight, UserPlus, Users } from 'lucide-react'
+import { ArrowLeft, ArrowRight, UserPlus, Users } from 'lucide-react'
 import { api, ApiError } from '../api/client'
 import {
+  Avatar,
+  Badge,
   Button,
   EmptyState,
   Modal,
@@ -13,7 +15,6 @@ import {
   TextField,
 } from '../components/ui'
 import { useApp } from '../state/useApp'
-import { Avatar, Badge } from '../components/ui'
 import { TOM_SITUACAO, calcularBoletim, formatNum, normalize } from '../utils/format'
 
 export function Alunos() {
@@ -32,6 +33,11 @@ export function Alunos() {
 
   const turmaNome = (id: string) => turmas.find((t) => t.turmaId === id)?.nome ?? '—'
 
+  // Garante que o turmaId nunca fique vazio quando já existe turma cadastrada.
+  useEffect(() => {
+    if (!turmaId && turmas.length > 0) setTurmaId(turmas[0].turmaId)
+  }, [turmas, turmaId])
+
   const lista = useMemo(() => {
     const nq = normalize(q.trim())
     return alunos
@@ -45,18 +51,20 @@ export function Alunos() {
 
   const submit = async (ev: FormEvent) => {
     ev.preventDefault()
-    const e: Record<string, string> = {}
-    if (nome.trim().length < 3) e.nome = 'Informe o nome completo.'
-    if (!matricula.trim()) e.matricula = 'Informe a matrícula.'
-    else if (alunos.some((a) => a.matricula === matricula.trim()))
-      e.matricula = 'Já existe um aluno com esta matrícula.'
-    if (!turmaId) e.turmaId = 'Selecione a turma.'
-    setErrors(e)
-    if (Object.keys(e).length) return
+    const erros: Record<string, string> = {}
+    if (nome.trim().length < 3) erros.nome = 'Informe o nome completo.'
+    if (!matricula.trim()) erros.matricula = 'Informe a matrícula.'
+    if (!turmaId) erros.turmaId = 'Selecione a turma.'
+    setErrors(erros)
+    if (Object.keys(erros).length) return
 
     setSaving(true)
     try {
-      await api.criarAluno({ nome: nome.trim(), matricula: matricula.trim(), turmaId })
+      await api.criarAluno({
+        nome: nome.trim(),
+        matricula: matricula.trim(),
+        turmaId,
+      })
       notify('success', 'Aluno cadastrado', `${nome.trim()} entrou em ${turmaNome(turmaId)}.`)
       addLog(`Aluno cadastrado: ${nome.trim()} (${turmaNome(turmaId)})`)
       setNome('')
@@ -67,7 +75,8 @@ export function Alunos() {
         setErrors(err.fields)
         notify('error', 'Não foi possível cadastrar', err.message)
       } else {
-        notify('error', 'Não foi possível cadastrar')
+        const msg = err instanceof Error ? err.message : 'Não foi possível cadastrar.'
+        notify('error', 'Não foi possível cadastrar', msg)
       }
     } finally {
       setSaving(false)
@@ -80,10 +89,15 @@ export function Alunos() {
         <div>
           <h1>Cadastro de alunos</h1>
           <p>Adicione os estudantes matriculados em cada turma.</p>
+          <Button variant="primary" icon={<ArrowLeft size={17} />} onClick={() => navigate('/')}>
+            Etapa anterior: Início
+          </Button>
         </div>
-        <Button variant="primary" icon={<ArrowRight size={17} />} onClick={() => navigate('/atividades')}>
-          Próxima etapa: Atividades
-        </Button>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <Button variant="primary" icon={<ArrowRight size={17} />} onClick={() => navigate('/atividades')}>
+            Próxima etapa: Atividades
+          </Button>
+        </div>
       </div>
 
       <div className="split">
@@ -235,17 +249,10 @@ function NovaTurma({
 
   const submit = async (ev: FormEvent) => {
     ev.preventDefault()
-    const e: Record<string, string> = {}
-    if (!nome.trim()) e.nome = 'Informe o nome da turma.'
-    const anoNum = Number(ano)
-    if (!Number.isInteger(anoNum) || anoNum < 2000 || anoNum > 2100)
-      e.anoLetivo = 'Informe um ano letivo válido.'
-    setErrors(e)
-    if (Object.keys(e).length) return
-
+    setErrors({})
     setSaving(true)
     try {
-      await api.criarTurma({ nome: nome.trim(), anoLetivo: anoNum })
+      await api.criarTurma({ nome: nome.trim(), anoLetivo: Number(ano) })
       onCreated(nome.trim())
     } catch (err) {
       if (err instanceof ApiError) {

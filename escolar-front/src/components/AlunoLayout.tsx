@@ -1,10 +1,22 @@
+import { useEffect, useState } from 'react'
 import { Link, Outlet } from 'react-router-dom'
-import { GraduationCap, LogOut } from 'lucide-react'
+import { GraduationCap, LogOut, Moon, Sun } from 'lucide-react'
 import { clearMatricula } from '../state/session'
 import { Banners } from './Banners'
 import { Toasts } from './ui'
 
 export function AlunoLayout() {
+  const [dark, setDark] = useState(() => {
+    const saved = localStorage.getItem('educontrol_theme')
+    if (saved) return saved === 'dark'
+    return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false
+  })
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = dark ? 'dark' : 'light'
+    localStorage.setItem('educontrol_theme', dark ? 'dark' : 'light')
+  }, [dark])
+
   return (
     <>
       <header className="hero hero-slim">
@@ -20,6 +32,16 @@ export function AlunoLayout() {
               </div>
             </div>
             <div className="top-actions">
+              <button
+                type="button"
+                className="exit-link"
+                onClick={() => setDark((d) => !d)}
+                aria-pressed={dark}
+                title={dark ? 'Ativar modo claro' : 'Ativar modo noturno'}
+              >
+                {dark ? <Sun size={16} /> : <Moon size={16} />}
+                <span>{dark ? 'Modo claro' : 'Modo noturno'}</span>
+              </button>
               <Link to="/" className="exit-link" onClick={clearMatricula}>
                 <LogOut size={16} />
                 <span>Sair</span>

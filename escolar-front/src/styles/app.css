@@ -1245,6 +1245,191 @@ tbody tr:hover {
   border: 1px solid var(--slate-200);
   background: #fff;
 }
+/* =====================================================
+   Modo noturno completo
+   ===================================================== */
+html[data-theme='dark'] {
+  color-scheme: dark;
+  --indigo-50: #2e1065;
+  --indigo-100: #3b0764;
+  --indigo-200: #4c007d;
+  --indigo-500: #9333ea;
+  --indigo-600: #7e22ce;
+  --indigo-700: #4c007d;
+  --indigo-800: #3b0764;
+  --indigo-900: #240046;
+
+  --slate-50: #0b1020;
+  --slate-100: #111827;
+  --slate-200: #263248;
+  --slate-300: #334155;
+  --slate-400: #94a3b8;
+  --slate-500: #94a3b8;
+  --slate-600: #cbd5e1;
+  --slate-700: #e2e8f0;
+  --slate-900: #f1f5f9;
+}
+
+html[data-theme='dark'],
+html[data-theme='dark'] body,
+html[data-theme='dark'] .page,
+html[data-theme='dark'] .entry,
+html[data-theme='dark'] .entry-main {
+  background-color: #0b1020 !important;
+  color: #f1f5f9 !important;
+}
+
+html[data-theme='dark'] .card,
+html[data-theme='dark'] .card-body,
+html[data-theme='dark'] .toolbar,
+html[data-theme='dark'] .table-wrap,
+html[data-theme='dark'] tbody tr,
+html[data-theme='dark'] .modal,
+html[data-theme='dark'] .toast,
+html[data-theme='dark'] .banner,
+html[data-theme='dark'] .kpi,
+html[data-theme='dark'] .me-status:not(.tone-green):not(.tone-amber):not(.tone-rose) {
+  background-color: #111827 !important;
+  color: #f1f5f9 !important;
+  border-color: #263248 !important;
+}
+
+html[data-theme='dark'] .card-head {
+  background: #4c007d !important;
+  color: #ffffff !important;
+  border-bottom-color: #6b21a8 !important;
+}
+
+html[data-theme='dark'] .card-head h2,
+html[data-theme='dark'] .card-head .sub-cell,
+html[data-theme='dark'] .card-head h2 svg {
+  color: #ffffff !important;
+}
+
+html[data-theme='dark'] .card-head h2 svg {
+  background: rgba(255, 255, 255, 0.16) !important;
+}
+
+html[data-theme='dark'] .modal-head,
+html[data-theme='dark'] .launch-foot,
+html[data-theme='dark'] .launch-row,
+html[data-theme='dark'] table th,
+html[data-theme='dark'] table td,
+html[data-theme='dark'] .list-foot,
+html[data-theme='dark'] .log li,
+html[data-theme='dark'] .attn li {
+  border-color: #263248 !important;
+}
+
+html[data-theme='dark'] table,
+html[data-theme='dark'] .field > label,
+html[data-theme='dark'] .main-cell,
+html[data-theme='dark'] .link-btn,
+html[data-theme='dark'] .empty strong,
+html[data-theme='dark'] .dist-legend b,
+html[data-theme='dark'] .counts {
+  color: #f1f5f9 !important;
+}
+
+html[data-theme='dark'] table th,
+html[data-theme='dark'] .launch-head,
+html[data-theme='dark'] .launch-foot {
+  background-color: #0f172a !important;
+  color: #94a3b8 !important;
+}
+
+html[data-theme='dark'] tbody tr:hover,
+html[data-theme='dark'] .launch-row:hover {
+  background-color: #192234 !important;
+}
+
+html[data-theme='dark'] input,
+html[data-theme='dark'] select,
+html[data-theme='dark'] textarea,
+html[data-theme='dark'] .input,
+html[data-theme='dark'] .select,
+html[data-theme='dark'] .search .input {
+  background-color: #192234 !important;
+  color: #f1f5f9 !important;
+  border-color: #334155 !important;
+}
+
+html[data-theme='dark'] .select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E") !important;
+}
+
+html[data-theme='dark'] .input::placeholder,
+html[data-theme='dark'] .select::placeholder,
+html[data-theme='dark'] .sub-cell,
+html[data-theme='dark'] .mono,
+html[data-theme='dark'] .field-hint,
+html[data-theme='dark'] .empty p,
+html[data-theme='dark'] .page-head p,
+html[data-theme='dark'] .role-card p,
+html[data-theme='dark'] .person-lg p,
+html[data-theme='dark'] .kpi span,
+html[data-theme='dark'] .kpi strong small,
+html[data-theme='dark'] .attn .why {
+  color: #94a3b8 !important;
+}
+
+html[data-theme='dark'] .input:disabled,
+html[data-theme='dark'] .select:disabled {
+  background-color: #0f172a !important;
+  color: #64748b !important;
+}
+
+html[data-theme='dark'] .icon-btn,
+html[data-theme='dark'] .btn:not(.btn-primary):not(.btn-success):not(.btn-dark),
+html[data-theme='dark'] .pf button:not(.on-p):not(.on-f),
+html[data-theme='dark'] .chip:not(.alert) {
+  background-color: #192234 !important;
+  color: #f1f5f9 !important;
+  border-color: #334155 !important;
+}
+
+html[data-theme='dark'] .btn-primary {
+  background-color: #7e22ce !important;
+  border-color: #7e22ce !important;
+  color: #ffffff !important;
+}
+
+html[data-theme='dark'] .btn-primary:hover:not(:disabled) {
+  background-color: #4c007d !important;
+  border-color: #4c007d !important;
+}
+
+/* Contraste das badges no modo noturno */
+html[data-theme='dark'] .badge-indigo {
+  background-color: #3b0764 !important;
+  color: #e9d5ff !important;
+}
+
+html[data-theme='dark'] .badge-green {
+  background-color: #064e3b !important;
+  color: #a7f3d0 !important;
+}
+
+html[data-theme='dark'] .badge-amber {
+  background-color: #78350f !important;
+  color: #fde68a !important;
+}
+
+html[data-theme='dark'] .badge-rose {
+  background-color: #881337 !important;
+  color: #fecdd3 !important;
+}
+
+html[data-theme='dark'] .badge-slate {
+  background-color: #1e293b !important;
+  color: #cbd5e1 !important;
+}
+
+html[data-theme='dark'] .skeleton {
+  background: linear-gradient(90deg, #192234 25%, #243149 50%, #192234 75%) !important;
+  background-size: 200% 100%;
+}
+
 .me-status p { margin: 0; font-weight: 500; }
 .me-status.tone-green { background: var(--green-50); border-color: var(--green-100); }
 .me-status.tone-amber { background: var(--amber-50); border-color: var(--amber-100); }

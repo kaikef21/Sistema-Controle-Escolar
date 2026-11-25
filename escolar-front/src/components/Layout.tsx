@@ -1,6 +1,6 @@
-import { Fragment } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { Link, NavLink, Outlet } from 'react-router-dom'
-import { Check, GraduationCap, LogOut } from 'lucide-react'
+import { Check, GraduationCap, LogOut, Moon, Sun } from 'lucide-react'
 import { API_URL } from '../api/client'
 import { useApp } from '../state/useApp'
 import { calcularBoletim } from '../utils/format'
@@ -9,6 +9,16 @@ import { Toasts } from './ui'
 
 export function Layout() {
   const { status, alunos, atividades, notas, frequencias } = useApp()
+  const [dark, setDark] = useState(() => {
+    const saved = localStorage.getItem('educontrol_theme')
+    if (saved) return saved === 'dark'
+    return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false
+  })
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = dark ? 'dark' : 'light'
+    localStorage.setItem('educontrol_theme', dark ? 'dark' : 'light')
+  }, [dark])
 
   const plural = (n: number, um: string, varios: string) => `${n} ${n === 1 ? um : varios}`
   const aprovados = alunos.filter(
@@ -37,23 +47,26 @@ export function Layout() {
               </div>
             </div>
             <div className="top-actions">
-            <span
-              className={`conn ${status === 'ready' ? 'ok' : status === 'error' ? 'off' : ''}`}
-              title={API_URL}
-            >
-              <i />
-              <span>
-                {status === 'ready'
-                  ? 'API conectada'
-                  : status === 'error'
-                    ? 'API sem resposta'
-                    : 'Conectando…'}
+              <button
+                type="button"
+                className="exit-link"
+                onClick={() => setDark((d) => !d)}
+                aria-pressed={dark}
+                title={dark ? 'Ativar modo claro' : 'Ativar modo noturno'}
+              >
+                {dark ? <Sun size={16} /> : <Moon size={16} />}
+                <span>{dark ? 'Modo claro' : 'Modo noturno'}</span>
+              </button>
+              <span
+                className={`conn ${status === 'ready' ? 'ok' : status === 'error' ? 'off' : ''}`}
+                title={API_URL}
+              >
+                {status === 'ready' ? 'Conectado' : status === 'error' ? 'Erro de conexão' : 'Conectando...'}
               </span>
-            </span>
-            <Link to="/" className="exit-link" title="Voltar à tela inicial">
-              <LogOut size={16} />
-              <span>Trocar perfil</span>
-            </Link>
+              <Link to="/" className="exit-link" title="Voltar à tela inicial">
+                <LogOut size={16} />
+                <span>Trocar perfil</span>
+              </Link>
             </div>
           </div>
 

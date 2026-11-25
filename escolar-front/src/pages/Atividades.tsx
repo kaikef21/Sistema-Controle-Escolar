@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowRight, ClipboardList, FilePlus2, PenLine } from 'lucide-react'
+import { ArrowLeft, ArrowRight, ClipboardList, FilePlus2, PenLine } from 'lucide-react'
 import { api, ApiError } from '../api/client'
 import {
   Badge,
@@ -87,10 +87,16 @@ export function Atividades() {
         <div>
           <h1>Cadastro de atividades</h1>
           <p>Registre provas, trabalhos e atividades práticas de cada turma.</p>
+        <Button variant="primary" icon={<ArrowLeft size={17} />} onClick={() => navigate('/alunos')}>
+            Etapa anterior: Alunos
+          </Button>
+          </div>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          
+          <Button variant="primary" icon={<ArrowRight size={17} />} onClick={() => navigate('/lancamentos')}>
+            Próxima etapa: Lançamentos
+          </Button>
         </div>
-        <Button variant="primary" icon={<ArrowRight size={17} />} onClick={() => navigate('/lancamentos')}>
-          Próxima etapa: Lançamentos
-        </Button>
       </div>
 
       <div className="split">

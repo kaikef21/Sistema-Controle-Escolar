@@ -8,6 +8,7 @@ import { Entrada } from './pages/Entrada'
 import { Lancamentos } from './pages/Lancamentos'
 import { MeuBoletim } from './pages/MeuBoletim'
 import { StatusGeral } from './pages/StatusGeral'
+import { CadastroProfessor } from './pages/CadastroProfessor'
 
 export default function App() {
   return (
@@ -22,6 +23,7 @@ export default function App() {
             <Route path="atividades" element={<Atividades />} />
             <Route path="lancamentos" element={<Lancamentos />} />
             <Route path="status" element={<StatusGeral />} />
+            <Route path="/cadastro-professor" element={<CadastroProfessor />} />
           </Route>
 
           {/* Área do aluno */}

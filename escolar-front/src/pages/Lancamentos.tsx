@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { ArrowRight, Check, ClipboardCheck, Lock, Save, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, ClipboardCheck, Lock, Save, X } from 'lucide-react'
 import { api } from '../api/client'
 import { Avatar, Button, EmptyState, SelectField, TextField } from '../components/ui'
 import { useApp } from '../state/useApp'
@@ -42,8 +42,11 @@ export function Lancamentos() {
         <div>
           <h1>Lançamento de notas e faltas</h1>
           <p>Registre a presença da aula e as notas obtidas na atividade escolhida.</p>
+          <Button variant="primary" icon={<ArrowLeft size={17} />} onClick={() => navigate('/atividades')}>
+            Etapa anterior: Atividades
+          </Button>
         </div>
-        <Button variant="dark" icon={<ArrowRight size={17} />} onClick={() => navigate('/status')}>
+        <Button variant="primary" icon={<ArrowRight size={17} />} onClick={() => navigate('/status')}>
           Ver status de aprovação
         </Button>
       </div>
