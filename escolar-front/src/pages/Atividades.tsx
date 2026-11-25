@@ -47,8 +47,6 @@ export function Atividades() {
   const submit = async (ev: FormEvent) => {
     ev.preventDefault()
     const e: Record<string, string> = {}
-    if (titulo.trim().length < 3) e.titulo = 'Dê um nome para a atividade.'
-    if (!turmaId) e.turmaId = 'Selecione a turma.'
     const max = parseNumber(notaMaxima)
     if (max === null || Number.isNaN(max) || max <= 0 || max > 100)
       e.notaMaxima = 'Informe um valor entre 0,1 e 100.'

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Check, ClipboardCheck, Lock, Save, X } from 'lucide-react'
-import { api } from '../api/client'
+import { api, ApiError } from '../api/client'
 import { Avatar, Button, EmptyState, SelectField, TextField } from '../components/ui'
 import { useApp } from '../state/useApp'
 import type { Aluno, Atividade } from '../types'
@@ -21,8 +21,10 @@ export function Lancamentos() {
   const [atividadeId, setAtividadeId] = useState(params.get('atividade') ?? '')
   const [dataManual, setDataManual] = useState<string | null>(null)
 
-  const atividade = atividades.find((a) => a.atividadeId === atividadeId)
-  // Se a pessoa não escolheu outra data, usa a data de realização da atividade.
+  const atividade = atividadeId
+    ? atividades.find((a) => a.atividadeId === atividadeId)
+    : undefined
+
   const data = dataManual ?? (atividade ? dayKey(atividade.dataRealizacao) : '')
   const turmaNome = (id: string) => turmas.find((t) => t.turmaId === id)?.nome ?? ''
 
@@ -62,8 +64,7 @@ export function Lancamentos() {
               label: `${a.titulo} — ${turmaNome(a.turmaId)}`,
             }))}
             onChange={(e) => {
-              const id = e.target.value
-              setAtividadeId(id)
+              setAtividadeId(e.target.value)
               setDataManual(null)
             }}
           />
@@ -102,6 +103,12 @@ export function Lancamentos() {
   )
 }
 
+interface FalhaEnvio {
+  label: string
+  motivo: string
+  payload: string
+}
+
 function Grid({
   atividade,
   alunos,
@@ -122,19 +129,11 @@ function Grid({
   const [presente, setPresente] = useState<Record<string, boolean>>({})
   const [valores, setValores] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
+  const [falhas, setFalhas] = useState<FalhaEnvio[]>([])
 
   const estaPresente = (id: string) => {
     const f = jaFreq(id)
     return f ? f.presente : (presente[id] ?? true)
-  }
-
-  const erroNota = (id: string): string | null => {
-    const n = parseNumber(valores[id] ?? '')
-    if (n === null) return null
-    if (Number.isNaN(n)) return 'Use apenas números.'
-    if (n < 0) return 'A nota não pode ser negativa.'
-    if (n > max) return `A nota máxima é ${formatNum(max)}.`
-    return null
   }
 
   const faltasAcumuladas = (id: string) => {
@@ -145,63 +144,78 @@ function Grid({
     return { faltas, perc: total ? (faltas / total) * 100 : 0 }
   }
 
+  const notaDigitada = (id: string) => {
+    const n = parseNumber(valores[id] ?? '')
+    return n !== null && !Number.isNaN(n) ? n : null
+  }
   const novasFreq = alunos.filter((a) => !jaFreq(a.alunoId))
-  const novasNotas = alunos.filter(
-    (a) => !jaNota(a.alunoId) && parseNumber(valores[a.alunoId] ?? '') !== null,
-  )
-  const comErro = alunos.filter((a) => erroNota(a.alunoId)).length
+  const novasNotas = alunos.filter((a) => !jaNota(a.alunoId) && notaDigitada(a.alunoId) !== null)
   const presentes = alunos.filter((a) => estaPresente(a.alunoId)).length
-  const nada = novasFreq.length === 0 && novasNotas.length === 0
+
+  const alunosOrdenados = useMemo(() => {
+    const pendentes: Aluno[] = []
+    const bloqueados: Aluno[] = []
+    for (const a of alunos) {
+      if (jaFreq(a.alunoId) && jaNota(a.alunoId)) {
+        bloqueados.push(a)
+      } else {
+        pendentes.push(a)
+      }
+    }
+    return [...bloqueados, ...pendentes]
+  }, [alunos, frequencias, notas, data, atividade.atividadeId])
 
   const salvar = async () => {
-    if (comErro > 0) {
-      notify('error', 'Há notas inválidas', 'Corrija os campos destacados antes de salvar.')
-      return
-    }
-    if (nada) {
+    if (novasFreq.length === 0 && novasNotas.length === 0) {
       notify('info', 'Nada novo para salvar', 'Estes lançamentos já foram registrados.')
       return
     }
     setSaving(true)
-    const jobs: { label: string; run: () => Promise<unknown> }[] = [
-      ...novasFreq.map((a) => ({
-        label: `presença de ${a.nome}`,
-        run: () =>
-          api.criarFrequencia({
-            alunoId: a.alunoId,
-            dataAula: data,
-            presente: estaPresente(a.alunoId),
-          }),
-      })),
-      ...novasNotas.map((a) => ({
-        label: `nota de ${a.nome}`,
-        run: () =>
-          api.criarNota({
-            alunoId: a.alunoId,
-            atividadeId: atividade.atividadeId,
-            valorNota: parseNumber(valores[a.alunoId] ?? '') as number,
-          }),
-      })),
+    setFalhas([])
+
+    const jobs: { label: string; payload: unknown; run: () => Promise<unknown> }[] = [
+      ...novasFreq.map((a) => {
+        const payload = {
+          alunoId: a.alunoId,
+          dataAula: `${data}T00:00:00`,
+          presente: estaPresente(a.alunoId),
+        }
+        return { label: `presença de ${a.nome}`, payload, run: () => api.criarFrequencia(payload) }
+      }),
+      ...novasNotas.map((a) => {
+        const payload = {
+          alunoId: a.alunoId,
+          atividadeId: atividade.atividadeId,
+          valorNota: notaDigitada(a.alunoId) as number,
+        }
+        return { label: `nota de ${a.nome}`, payload, run: () => api.criarNota(payload) }
+      }),
     ]
-    const results = await Promise.allSettled(jobs.map((j) => j.run()))
-    const falhas = results.filter((r) => r.status === 'rejected').length
-    const ok = results.length - falhas
+
+    const erros: FalhaEnvio[] = []
+    let ok = 0
+    for (const j of jobs) {
+      try {
+        await j.run()
+        ok++
+      } catch (err) {
+        console.error(`Falha ao enviar ${j.label}`, j.payload, err)
+        const motivo =
+          err instanceof ApiError
+            ? `${err.status || 'sem resposta'}: ${err.message}`
+            : err instanceof Error
+              ? err.message
+              : 'erro desconhecido'
+        erros.push({ label: j.label, motivo: motivo.slice(0, 400), payload: JSON.stringify(j.payload) })
+      }
+    }
     setSaving(false)
+    setFalhas(erros)
 
     if (ok > 0)
       addLog(
         `Lançamento em ${atividade.titulo}: ${novasFreq.length} presenças e ${novasNotas.length} notas enviadas`,
       )
-    if (falhas === 0) {
-      notify('success', 'Lançamento salvo', `${ok} registros enviados para a API.`)
-    } else {
-      const primeira = results.find((r): r is PromiseRejectedResult => r.status === 'rejected')
-      notify(
-        'error',
-        `${falhas} de ${results.length} registros falharam`,
-        primeira?.reason instanceof Error ? primeira.reason.message : undefined,
-      )
-    }
     reload()
   }
 
@@ -214,14 +228,13 @@ function Grid({
         <span>Nota (máx. {formatNum(max)})</span>
       </div>
 
-      {alunos.map((a) => {
+      {alunosOrdenados.map((a) => {
         const f = jaFreq(a.alunoId)
         const n = jaNota(a.alunoId)
         const acc = faltasAcumuladas(a.alunoId)
-        const err = erroNota(a.alunoId)
         const on = estaPresente(a.alunoId)
         return (
-          <div className="launch-row" key={a.alunoId}>
+          <div className="launch-row" key={a.alunoId || a.matricula}>
             <div className="person">
               <Avatar nome={a.nome} />
               <div>
@@ -258,7 +271,7 @@ function Grid({
               {acc.faltas} {acc.faltas === 1 ? 'falta' : 'faltas'} ({Math.round(acc.perc)}%)
             </span>
 
-            <div className={`grade-cell ${err ? 'has-error' : ''}`}>
+            <div className="grade-cell">
               {n ? (
                 <>
                   <input className="input" value={formatNum(n.valorNota)} disabled aria-label={`Nota de ${a.nome}`} />
@@ -271,7 +284,6 @@ function Grid({
                     inputMode="decimal"
                     placeholder="—"
                     aria-label={`Nota de ${a.nome}`}
-                    aria-invalid={!!err || undefined}
                     value={valores[a.alunoId] ?? ''}
                     onChange={(e) => setValores((v) => ({ ...v, [a.alunoId]: e.target.value }))}
                   />
@@ -279,10 +291,25 @@ function Grid({
                 </>
               )}
             </div>
-            {err && <div className="err-text">{err}</div>}
           </div>
         )
       })}
+
+      {falhas.length > 0 && (
+        <div className="banner banner-error" role="alert" style={{ margin: 16 }}>
+          <div>
+            <strong>O que a respondeu</strong>
+            {falhas.map((f, i) => (
+              <div key={i} style={{ marginTop: 8 }}>
+                <div>
+                  <b>{f.label}</b>: {f.motivo}
+                </div>
+                <code style={{ fontSize: 12, wordBreak: 'break-all' }}>Enviado: {f.payload}</code>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="launch-foot">
         <div className="counts">
@@ -302,7 +329,7 @@ function Grid({
       </div>
       {(alunos.some((a) => jaFreq(a.alunoId)) || alunos.some((a) => jaNota(a.alunoId))) && (
         <p className="list-foot">
-          Registros já enviados ficam bloqueados: a API ainda não permite alterar uma nota ou presença depois de salva.
+          Registros já enviados ficam bloqueados.
         </p>
       )}
     </>
