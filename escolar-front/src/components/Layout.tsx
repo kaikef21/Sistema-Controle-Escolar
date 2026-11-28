@@ -4,7 +4,6 @@ import { Check, GraduationCap, LogOut, Moon, Sun } from 'lucide-react'
 import { API_URL } from '../api/client'
 import { useApp } from '../state/useApp'
 import { calcularBoletim } from '../utils/format'
-import { Banners } from './Banners'
 import { Toasts } from './ui'
 
 export function Layout() {
@@ -97,7 +96,6 @@ export function Layout() {
       </header>
 
       <main className="page">
-        <Banners />
         <Outlet />
       </main>
       <Toasts />

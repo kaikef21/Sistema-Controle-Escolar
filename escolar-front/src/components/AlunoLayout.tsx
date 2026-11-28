@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { Link, Outlet } from 'react-router-dom'
 import { GraduationCap, LogOut, Moon, Sun } from 'lucide-react'
 import { clearMatricula } from '../state/session'
-import { Banners } from './Banners'
 import { Toasts } from './ui'
 
 export function AlunoLayout() {
@@ -51,7 +50,6 @@ export function AlunoLayout() {
         </div>
       </header>
       <main className="page">
-        <Banners />
         <Outlet />
       </main>
       <Toasts />

@@ -3,7 +3,6 @@ import type { FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowRight, GraduationCap, IdCard, LogOut, Moon, Presentation, Sun, UserCheck, UserPlus } from 'lucide-react'
 import { api, ApiError } from '../api/client'
-import { Banners } from '../components/Banners'
 import { Button, TextField } from '../components/ui'
 import { setMatricula } from '../state/session'
 import { useApp } from '../state/useApp'
@@ -160,7 +159,6 @@ export function Entrada() {
       </header>
 
       <main className="entry-main">
-        <Banners />
         <div className="entry-cards">
           <section className="card role-card">
             <span className="role-icon role-prof">
@@ -168,6 +166,23 @@ export function Entrada() {
             </span>
             <h2>Sou professor</h2>
             <p>Cadastre alunos e atividades, lance notas e presenças e acompanhe quem está aprovado.</p>
+
+            {professor ? (
+              <div className="prof-badge">
+                <div>
+                  <strong>
+                    <UserCheck size={15} /> {professor.nome}
+                  </strong>
+                  <small>@{professor.username}</small>
+                </div>
+                <button type="button" className="exit-link" onClick={sairProfessor} title="Limpar seleção da sessão">
+                  <LogOut size={14} />
+                  <span>Sair</span>
+                </button>
+              </div>
+            ) : (
+              <p className="field-error">{erroProfessor || 'Nenhum professor selecionado ou cadastrado.'}</p>
+            )}
 
             <div className="form">
               <Button

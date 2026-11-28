@@ -3,7 +3,6 @@ import type { FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, GraduationCap, Moon, Sun, UserPlus } from 'lucide-react'
 import { api, ApiError } from '../api/client'
-import { Banners } from '../components/Banners'
 import { Button, TextField } from '../components/ui'
 import { useApp } from '../state/useApp'
 
@@ -69,11 +68,11 @@ export function CadastroProfessor() {
       setSaving(false)
     }
     sessionStorage.setItem(
-  'educontrol_professor',
-  JSON.stringify({ nome: nomeLimpo, username: userLimpo }),
-)
-notify('success', 'Professor cadastrado', `Usuário ${nomeLimpo} criado com sucesso.`)
-navigate('/alunos')
+      'educontrol_professor',
+      JSON.stringify({ nome: nomeLimpo, username: userLimpo }),
+    )
+    notify('success', 'Professor cadastrado', `Usuário ${nomeLimpo} criado com sucesso.`)
+    navigate('/alunos')
   }
 
   return (
@@ -107,7 +106,6 @@ navigate('/alunos')
       </header>
 
       <main className="page">
-        <Banners />
         <div className="page-head">
           <div>
             <h1>Cadastro de professor</h1>
